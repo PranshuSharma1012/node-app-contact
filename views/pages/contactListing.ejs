@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <%- include('../partials/head') %>
+</head>
+<body>
+  <%- include('../partials/header') %>
+    
+    <div class="container my-5">
+
+        <h2 style="color:#AAA" > Contact Listing</h2>
+
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">E-Mail</th>
+                <th scope="col">Phone</th>
+                <th scope="col">City</th>
+                <th scope="col">Image</th>
+                <th scope="col">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+
+                <% data.forEach( (val) => { %>
+                    <tr>
+                        <td><%= val.first_name %></td>
+                        <td><%= val.last_name %></td>
+                        <td><%= val.email  %></td>
+                        <td><%= val.phone %></td>
+                        <td><%= val.city %></td>
+                        <td><img style="width: 50px; height: 50px;" class=" img img-thumbnail rounded mx-auto d-block" src="/uploads/<%= val.image %>" alt="XXX"></td>
+                        <td><a href="/contact/delete/<%= val.id %>"  type="button " class="btn btn-outline-danger">Delete</a></td>
+                      </tr>
+                <% })  %>
+
+            </tbody>
+          </table>    
+
+        
+    </div>
+
+
+    <%- include('../partials/footer') %>
+</body>
+</html>

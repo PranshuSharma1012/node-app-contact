@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <%- include('../partials/head') %>
+  </head>
+  <body>
+    <%- include('../partials/header') %>
+    
+      
+    <div class="container my-5">
+        <!-- <% if(0){ %>
+        <div class="alert alert-success" role="alert">
+            <%= msg %>
+        </div>
+        <% } %> -->
+
+        <h2 style="color:#AAA" > Add Contact</h2>
+
+        <div class="my-3">
+
+            <form action="/submitContact" method="POST" enctype="multipart/form-data" >
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" class="form-control" value="<%= contactData.email || '' %>"  name="email" id="email" placeholder="Enter your E-mail" >
+                    <% if (errors.email) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.email.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" value="<%= contactData.first_name || '' %>"  name="first_name" id="first_name" placeholder="Enter First Name" >
+                    <% if (errors.first_name) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.first_name.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" value="<%= contactData.last_name || '' %>"  name="last_name" id="last_name" placeholder="Enter last Name" >  
+                    <% if (errors.last_name) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.last_name.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone No</label>
+                    <input type="text" class="form-control" value="<%= contactData.phone || '' %>" name="phone" id="phone" placeholder="Enter Phone number" >  
+                    <% if (errors.phone) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.phone.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="mb-3">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" class="form-control" value="<%= contactData.city || '' %>" name="city" id="city" placeholder="Enter Your City" >  
+                    <% if (errors.city) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.city.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="mb-3">
+                    <label for="image" class="form-label">Image</label>
+                    <input type="file" class="form-control"  name="image" id="image"  >  
+                    <% if (errors.image) { %>
+                        <div class="alert alert-danger" role="alert">
+                          <% errors.image.forEach( (val)=> { %>
+                            <%= val %>
+            
+                          <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+    
+                <button type="submit" class="btn btn-primary" >Submit</button>
+            </form>
+
+        </div>
+
+        
+    </div>
+
+   
+    <%- include('../partials/footer') %>
+  </body>
+</html>
+

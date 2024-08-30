@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Login</title>
+    <%- include('../partials/head') %>
+</head>
+<body>
+  <%- include('../partials/header') %>
+    
+    <div class="container my-5">
+
+        <h2 style="color:#AAA" > Users Listing</h2>
+
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">E-Mail</th>
+                <th scope="col">Phone</th>
+                <th scope="col">City</th>
+                <th scope="col">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+
+                <% data.forEach( (val) => { %>
+                    <tr>
+                        <td><%= val.name %></td>
+                        <td><%= val.email  %></td>
+                        <td><%= val.phone %></td>
+                        <td><%= val.city %></td>
+                        <td><a href="/delete/<%= val.id%>" value="" type="button " class="btn btn-outline-danger">Delete</a></td>
+                      </tr>
+                <% })  %>
+
+            </tbody>
+          </table>    
+
+        
+    </div>
+
+
+    <%- include('../partials/footer') %>
+</body>
+</html>
