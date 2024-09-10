@@ -8,15 +8,24 @@ const flash = require('connect-flash')
 const { log } = require('console')
 const axios = require('axios')
 const {authMiddleware} = require('./middleware/middleware')
+
+const {errorHandler} = require('./middleware/errorMiddleware')
+
 const {contactListing ,register , listing , validateLogin , addContact , checkFileType,deleteContact} = require('./function')
 const multer = require('multer')
 const {port} = require('./config')
 const contactController = require('./controllers/contactController')
+const userController = require('./controllers/userController')
+const contactRoutes = require('./routes/contacts')
+const userRoutes = require('./routes/user')
+
+
+
 var LocalStorage = require('node-localstorage').LocalStorage;
 // console.log(LocalStorage);
 localStorage = new LocalStorage('./scratch');
 
-
+require('./connection')
 // const port = 3000
 const app = express()
 
@@ -42,7 +51,14 @@ app.use(session({
     resave: true
 }));
 
+
 app.use(flash());
+
+app.use('/contact' , contactRoutes)
+app.use('/user' , userRoutes)
+
+
+
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -61,130 +77,198 @@ var upload = multer({
     storage: storage,
     limits: { fileSize: 1000000},
     fileFilter: function(req, file, cb) {
-        checkFileType(file, cb);
+        checkFileType(req , file, cb);
     }
 })
 
 
-// ++++++++++++++++++++++++ My Work Below ++++++++++++++++++++++++++++ 
-
-
-app.get('/register', (req, res) => {
-
-    let errors = req.flash('validationError')[0] || {}
-    let data = req.flash('data')[0] || {}
-
-    if(errors.length){
-        errors = JSON.parse(errors);                    
-    }
-
-    return res.render('pages/index', { errors, data })
+// ++++++++++++++++++++++++ My Work Below ++++++++++++++++++++++++++++
+app.get('/profile' , (req , res) => {
+    res.render('/pages/home')
 })
 
 
-app.post('/submit', async (req, res) => {
-    let data = req.body
-    req.flash('data', data)
+// app.get('/test' , (req ,res , next) => {
+
+//     console.log(req.flash('error'));
     
-    let result = await register(data, req)  
+//     res.send('test page')
 
-    if (result) {
-        return res.redirect(`/login`)
-    }
+//     // try{
 
-    return res.redirect('back')
+//         // let a = 1
+//         // let b = 0
+//         // let c = a/b
 
-})
-
-app.get('/listing', async (req, res) => {
-
-    let error = {}
-    let data = []
-    let user_list = await listing()
-
-    if (Array.isArray(user_list)) {
-        data = user_list
-    }
-    else {
-        error = user_list
-    }
-
-    return res.render('pages/listing', { data, error })
-
-})
-
-app.get('/home' , authMiddleware , (req , res) => {
-
-    return res.render('pages/home')
-
-})
-
-app.get('/login', (req, res) => {
-
-    let msg = req.flash('success')[0] || {}
-
-    console.log(msg);    
-
-    res.render('pages/login' , {msg})
-})
-
-app.post('/login', async (req, res) => {
-
-    let data = req.body
-    let result = await validateLogin(data)
-    // console.log(result)    
-    if (result.is_success) {
-
-        console.log(result.access_token)        
-
-        localStorage.setItem('access_token' , result.access_token)
+//         // console.log(c())       
         
-        return res.redirect('/home')
-    }
-    res.redirect('/login')  
+//         // throw new Error('there is an error')
+//     // }
+//     // catch(e){
+//     //     next(e)
+//     // }
 
-})
+// })
 
-app.get('/logout' , async (req , res) => {
 
-    const headers = {
-        'Authorization': 'Bearer '+localStorage.getItem('access_token')
-    }
-    try{
-        let response = await axios.post("http://127.0.0.1:8000/api/logout" ,{}, {headers : headers})
-        if (response.data.is_success) {
-            localStorage.removeItem('access_token')            
-            return res.redirect('/login')
-        }
-        else{
-            console.log('Failed to logout')            
-        }
-    }
-    catch(error){
-        console.log(` error from laravel : ${error}`)        
+app.use(errorHandler)
+
+app.listen(port, function (error) {
+    if (!error) {
+        console.log(`server running on port no. ${port}`);
+
     }
 })
 
 
-app.get('/addContact', authMiddleware ,
-    (req , res ) => {
 
-    let errors = req.flash('error')[0] || {}
-    let contactData = req.flash('contactData')[0] || {}
 
-    if(errors.length){
-        errors = JSON.parse(errors);                    
-    }
 
-    console.log(errors);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// app.get('/register', userController.userRegister)
+
+// app.get('/register', (req, res) => {
+
+//     let errors = req.flash('validationError')[0] || {}
+//     let data = req.flash('data')[0] || {}
+
+//     if(errors.length){
+//         errors = JSON.parse(errors);                    
+//     }
+
+//     return res.render('pages/index', { errors, data })
+// })
+
+// app.post('/submit', userController.submit)
+// app.post('/submit', async (req, res) => {
+//     let data = req.body
+//     req.flash('data', data)
+    
+//     let result = await register(data, req)  
+
+//     if (result) {
+//         return res.redirect(`/login`)
+//     }
+
+//     return res.redirect('back')
+
+// })
+
+// app.get('/listing', userController.userListing)
+// app.get('/listing', async (req, res) => {
+
+//     let error = {}
+//     let data = []
+//     let user_list = await listing()
+
+//     if (Array.isArray(user_list)) {
+//         data = user_list
+//     }
+//     else {
+//         error = user_list
+//     }
+
+//     return res.render('pages/listing', { data, error })
+
+// })
+
+// app.get('/home' , authMiddleware , userController.home)
+// app.get('/home' , authMiddleware , (req , res) => {
+
+//     return res.render('pages/home')
+
+// })
+
+// app.get('/login', userController.login)
+// app.get('/login', (req, res) => {
+
+//     let msg = req.flash('success')[0] || {}
+
+//     console.log(msg);    
+
+//     res.render('pages/login' , {msg})
+// })
+
+// app.post('/login', userController.checkLogin)
+// app.post('/login', async (req, res) => {
+
+//     let data = req.body
+//     let result = await validateLogin(data)
+//     // console.log(result)    
+//     if (result.is_success) {
+
+//         console.log(result.access_token)        
+
+//         localStorage.setItem('access_token' , result.access_token)
+        
+//         return res.redirect('/home')
+//     }
+//     res.redirect('/login')  
+
+// })
+
+// app.get('/logout' , userController.logout)
+
+// app.get('/logout' , async (req , res) => {
+//     const headers = {
+//         'Authorization': 'Bearer '+localStorage.getItem('access_token')
+//     }
+//     try{
+//         let response = await axios.post("http://127.0.0.1:8000/api/logout" ,{}, {headers : headers})
+//         if (response.data.is_success) {
+//             localStorage.removeItem('access_token')            
+//             return res.redirect('/login')
+//         }
+//         else{
+//             console.log('Failed to logout')            
+//         }
+//     }
+//     catch(error){
+//         console.log(` error from laravel : ${error}`)        
+//     }
+// })
+
+// app.get('/addContact', authMiddleware , contactController.add)
+// app.get('/addContact', authMiddleware ,
+//     (req , res ) => {
+
+//     let errors = req.flash('error')[0] || {}
+//     let contactData = req.flash('contactData')[0] || {}
+
+//     if(errors.length){
+//         errors = JSON.parse(errors);                    
+//     }
+
+//     console.log(errors);
     
     
-    return res.render('pages/addContact' , {errors, contactData })
-})
+//     return res.render('pages/addContact' , {errors, contactData })
+// })
 
-let multerMid = upload.single('image')
+// let multerMid = upload.single('image')
 
-app.post('/submitContact', contactController.saveContact)
+// ================= Contacts ====================== 
+
+// app.post('/submitContact', contactController.saveContact)
 
 // app.post('/submitContact' , (req , res) => {         
     // multerMid(req , res , async (error) => {
@@ -218,8 +302,7 @@ app.post('/submitContact', contactController.saveContact)
     // })
 // })
 
-
-
+// app.get('/contactListing/:page?',authMiddleware , contactController.contactList)
 // app.get('/contactListing',authMiddleware , async (req ,res) => {
 
 //     let error = {}
@@ -237,23 +320,16 @@ app.post('/submitContact', contactController.saveContact)
 //     res.render('pages/contactListing' , {data , error})
 // })
 
-app.get('/contactListing',authMiddleware , contactController.contactList)
+// app.get('/contact/delete/:id' , contactController.contactDelete)
+
+// app.get('/contact/delete/:id' , (req , res) => {
+//     let id = req.params.id
+//     let result = deleteContact(id);
 
 
-
-app.get('/contact/delete/:id' , (req , res) => {
-    let id = req.params.id
-    let result = deleteContact(id);
+// })
 
 
-})
-
-app.listen(port, function (error) {
-    if (!error) {
-        console.log(`server running on port no. ${port}`);
-
-    }
-})
 
 // function validate(data) {
 //     let error = {}

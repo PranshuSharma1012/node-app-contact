@@ -1,5 +1,11 @@
 const multer = require('multer')
-const {contactListing  , addContact , checkFileType} = require('../function')
+
+const {contactListing  , addContact , checkFileType, totalContacts , pagination, deleteContact , getContactData} = require('../function')
+
+
+
+const {errorHandler} = require('../middleware/errorMiddleware')
+const { error } = require('jquery')
 
 
 var storage = multer.diskStorage({
@@ -27,35 +33,65 @@ var upload = multer({
     }
 })
 
-let multerMid = upload.single('image')
+// let multerMid = upload.single('image')
+
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+// add contact
+
+let add = (req , res , next ) => {
+
+    try{
+        let errors = req.flash('error')[0] || {}
+        let contactData = req.flash('contactData')[0] || {}
+    
+        if(errors.length){
+            errors = JSON.parse(errors);                    
+        }
+        console.log(errors);   
+        
+        return res.render('pages/addContact' , {errors, contactData })
+
+    }
+    catch(e){
+        next(e)
+    }
+
+}
 
 // save Contact funciton 
-let saveContact = (req , res) => {
-    multerMid(req , res , async (error) => {
+let saveContact = async (req , res , next) => {
+
+    try{
         req.flash('contactData' , req.body)
 
-        if (error) {
-            req.flash('error' , error)
-            console.log(` video error : ${error}`);
-            console.log(res.redirect)            
-            return res.redirect('/addContact')
-            
-            return false
+        if (req.fileValidationError) {
+            req.flash('error' , {image:[req.fileValidationError]})
+            console.log(` video error : ${req.fileValidationError}`);
+            // console.log(res.redirect)            
+            return res.redirect('/contact/addContact')
         }
         else{                
             let contactData = req.body 
                 
             if(req.file) {
                 contactData['image'] = req.file.filename         
-                let result = await addContact(contactData , req)                    
+                let result = await addContact(contactData , req)    
+                
+                console.log(result);
+                
+                
                 if (result) {
                     req.flash('success' , "contact created successfully!")    
-                    return res.redirect('/contactListing')
+                    return res.redirect('/contact/contactListing')
                 } 
-                else{
-                    req.flash('error' , 'something went wrong please try again')
-                    res.redirect('back')
-                    return false
+                else{                    
+
+                    throw new Error('something went wrong please try again')
+
+                    // req.flash('error' , 'something went wrong please try again')
+                    // res.redirect('back')
+                    // return false
                 }  
             }
             else{
@@ -65,7 +101,13 @@ let saveContact = (req , res) => {
             }
             
         }
-    })
+    }
+    catch(e){
+        console.log('inside catch')
+        
+        next(e)
+    }
+    
 }
 
 // Contacat listing
@@ -73,20 +115,47 @@ let contactList = async (req ,res) => {
 
     let error = {}
     let data = []
-    let contactList = await contactListing()
+    let total = await totalContacts()
+    let page = req.params.page || 1
+    if (totalContacts) {
+        let paginationParams = await pagination(total , 5, page)
+        // console.log(paginationParams)
+        let contactList = await contactListing(paginationParams.start , paginationParams.end)
+
+        // console.log(contactList)
+
+        if (Array.isArray(contactList)) {
+            data = contactList     
+        }
+        else{
+            error = contactList
+        }    
+        res.render('pages/contactListing' , {data , error, 'totalPages':paginationParams.noOfPages})
+    }  
+}
+
+// delete contact
+let contactDelete =  (req , res) => {
+    let id = req.params.id
+    let result = deleteContact(id);
+}
+
+let getContact = async (req , res) => {
+    let id = req.params.id
+    let contact = await getContactData(id)
+
+    console.log(contact);
     
 
-    if (Array.isArray(contactList)) {
-        data = contactList     
-    }
-    else{
-        error = contactList
-    }
-
-    res.render('pages/contactListing' , {data , error})
+    res.render('pages/contactProfile' , {contact})
 }
+
+
 
 module.exports = {
     saveContact,
-    contactList
+    contactList,
+    contactDelete,
+    add,
+    getContact
 }
